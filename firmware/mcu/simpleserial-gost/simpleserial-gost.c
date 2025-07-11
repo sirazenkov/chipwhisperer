@@ -12,8 +12,11 @@ uint8_t get_mask(uint8_t* m, uint8_t len)
 
 uint8_t get_key(uint8_t* k, uint8_t len)
 {
-	gost_indep_key(k);
-	return 0x00;
+    if (len != GOST_KEYLEN) {
+        return 0x01; // Код ошибки для неверной длины ключа
+    }
+    gost_indep_set_key(k, len);
+    return 0x00;
 }
 
 uint8_t get_pt(uint8_t* pt, uint8_t len)
@@ -143,6 +146,7 @@ int main(void)
     simpleserial_addcmd_flags('m', 18, get_mask, CMD_FLAG_LEN);
     simpleserial_addcmd('s', 2, enc_multi_setnum);
     simpleserial_addcmd('f', 16, enc_multi_getpt);
+    simpleserial_addcmd('c', 0, get_current_key);
     #endif
     while(1)
         simpleserial_get();
