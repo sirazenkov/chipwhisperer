@@ -33,3 +33,12 @@ void gost_indep_mask(uint8_t * m, uint8_t len)
 {
 }
 
+void gost_indep_set_key(uint8_t* key, uint8_t len)
+{
+    if (len != GOST_KEYLEN) {
+        // Можно добавить обработку ошибки или padding при необходимости
+        return;
+    }
+    GOST_ECB_indp_setkey(key);
+}
+

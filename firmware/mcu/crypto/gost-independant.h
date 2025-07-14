@@ -15,5 +15,6 @@ void gost_indep_enc(uint8_t * pt);
 void gost_indep_enc_pretrigger(uint8_t * pt);
 void gost_indep_enc_posttrigger(uint8_t * pt);
 void gost_indep_mask(uint8_t * m, uint8_t len);
+void gost_indep_set_key(uint8_t* key, uint8_t len);
 
 #endif
