@@ -4,21 +4,17 @@
 #include <stdint.h>
 
 #define MAGMA_KEY_LENGTH 32
-#define MAX_KEY_SLOTS 10  // Количество хранимых ключей
+#define DEFAULT_MAGMA_KEY 0x6c,0xec,0xc6,0x7f,0x28,0x7d,0x08,0x3d, \
+                    0xeb,0x87,0x66,0xf0,0x73,0x8b,0x36,0xcf, \
+                    0x16,0x4e,0xd9,0xb2,0x46,0x95,0x10,0x90, \
+                    0x86,0x9d,0x08,0x28,0x5d,0x2e,0x19,0x3b
 
-// Основные функции
 void gost_magma_init(void);
-void gost_magma_key(uint8_t* key);  // Для обратной совместимости
-
-// Функции управления множеством ключей
-void gost_magma_set_key(uint8_t slot, uint8_t* key);
-void gost_magma_use_key(uint8_t slot);
-uint8_t* gost_magma_get_key(uint8_t slot);
-
-// Функции шифрования
-void gost_magma_enc(uint8_t* block);
+void gost_magma_key(uint8_t *key);
+void gost_magma_enc(uint8_t *block);
 void gost_magma_enc_pretrigger(uint8_t* block);
 void gost_magma_enc_posttrigger(uint8_t* block);
 void gost_magma_mask(uint8_t* m, uint8_t len);
+
 
 #endif
