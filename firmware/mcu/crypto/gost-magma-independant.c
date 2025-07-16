@@ -2,19 +2,18 @@
 #include "gost-magma.h"
 #include "hal.h"
 
-uint8_t magma_key[MAGMA_KEY_LENGTH];
+uint8_t enckey[32];
 
 void gost_magma_init(void) {
     ;
 }
 
 void gost_magma_key(uint8_t* key) {
-    memcpy(magma_key, key, MAGMA_KEY_LENGTH);
-    GOST_MAGMA_SetKey(key);
+    GOST_ECB_magma_setkey(key);
 }
 
 void gost_magma_enc(uint8_t* block) {
-    GOST_MAGMA_Encrypt(block);
+    GOST_ECB_magma_crypto(block);
 }
 
 void gost_magma_enc_pretrigger(uint8_t* block) {
