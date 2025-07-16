@@ -31,7 +31,7 @@ uint8_t get_pt(uint8_t* pt, uint8_t len)
 
     gost_magma_enc_posttrigger(pt);
 
-    simpleserial_put('r', 16, pt);
+    simpleserial_put('r', 8, pt);
     return 0x00;
 }
 
@@ -54,7 +54,7 @@ uint8_t enc_multi_getpt(uint8_t* pt, uint8_t len)
     }
 
     gost_magma_enc_posttrigger(pt);
-    simpleserial_put('r', 16, pt);
+    simpleserial_put('r', 8, pt);
     return 0;
 }
 
