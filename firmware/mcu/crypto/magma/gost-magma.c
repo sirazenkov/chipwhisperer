@@ -1,10 +1,12 @@
 #include "gost-magma.h"
 #include <string.h>
 
+static kuz_key_t ctx;
+
 // Стандартные S-блоки ГОСТ 28147-89
 static const uint8_t SBOX[8][16] = {
     {12, 4, 6, 2, 10, 5, 11, 9, 14, 8, 13, 7, 0, 3, 15, 1},
-    {6, 8, 2, 3, 9, 10, 5, 12, 1, 14, 4, 7, 1, 13, 0, 15},
+    {6, 8, 2, 3, 9, 10, 5, 12, 1, 14, 4, 7, 11, 13, 0, 15},
     {11, 3, 5, 8, 2, 15, 10, 13, 14, 1, 7, 4, 12, 9, 6, 0},
     {12, 8, 2, 1, 13, 4, 15, 6, 7, 0, 10, 5, 3, 14, 9, 11},
     {7, 15, 5, 10, 8, 1, 6, 13, 0, 9, 3, 14, 11, 4, 2, 12},
@@ -29,8 +31,6 @@ static inline uint32_t magma_F(uint32_t data, uint32_t key) {
 }
 
 void GOST_ECB_magma_setkey(uint8_t* key) {
-    static kuz_key_t ctx;
-
     // Генерация раундовых ключей (32 раунда)
     for (int i = 0; i < 8; i++) {
         ctx.k[i] = ((uint32_t)key[4 * i] << 24) |
@@ -51,7 +51,6 @@ void GOST_ECB_magma_setkey(uint8_t* key) {
 }
 
 void GOST_ECB_magma_crypto(uint8_t* block) {
-    static kuz_key_t ctx;
     uint32_t left, right, temp;
 
     // Разделение блока на две части
@@ -62,13 +61,13 @@ void GOST_ECB_magma_crypto(uint8_t* block) {
 
     // 31 раунд преобразований
     for (int i = 0; i < 31; i++) {
-        temp = left;
-        left = right ^ magma_F(left, ctx.k[i]);
-        right = temp;
+        temp = right;
+        right = left ^ magma_F(right, ctx.k[i]);
+        left = temp;
     }
 
     // Финальный раунд (без перестановки)
-    right ^= magma_F(left, ctx.k[31]);
+    left ^= magma_F(right, ctx.k[31]);
 
     // Сборка результата
     block[0] = (left >> 24) & 0xFF;
