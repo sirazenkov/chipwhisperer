@@ -13,6 +13,11 @@
 
 #define MAGMA_keyExpSize 128
 
+// my 128-bit datatype
+typedef union {
+    uint64_t q[2];
+    uint8_t  b[GOST_BLOCKLEN];
+} w128_t;
 
 // cipher context
 typedef struct {
