@@ -1,23 +1,22 @@
 TARGET = simpleserial-magma
 
 SRC += simpleserial-magma.c
-SRC += ../../crypto/magma/gost-magma.c 
-SRC += ../../crypto/magma/gost-magma-independant.c
 
+# -----------------------------------------------------------------------------
 EXTRA_OPTS = NO_EXTRA_OPTS
 CFLAGS += -D$(EXTRA_OPTS)
 
-# Crypto target
-CRYPTO_TARGET = MAGMA
-${info Building for platform ${PLATFORM} with CRYPTO_TARGET=$(CRYPTO_TARGET)}
 
-# Platform-specific includes
-ifeq ($(PLATFORM),CW303)
-  CDEFS += -DHWCRYPTO=1
-  CFLAGS += -I../../hal/xmega
+ifeq ($(CRYPTO_TARGET),)
+  ${info No CRYPTO_TARGET passed - defaulting to KUZNYECHIK}
+  CRYPTO_TARGET = KUZNYECHIK
 endif
 
-# Include common rules
+${info Building for platform ${PLATFORM} with CRYPTO_TARGET=$(CRYPTO_TARGET)}
+
+#Add simpleserial project to build
 include ../simpleserial/Makefile.simpleserial
-FIRMWAREPATH = ../..
+
+FIRMWAREPATH = ../.
 include $(FIRMWAREPATH)/Makefile.inc
+

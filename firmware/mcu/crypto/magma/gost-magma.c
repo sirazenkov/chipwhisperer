@@ -1,4 +1,5 @@
 #include "gost-magma.h"
+#include <string.h>
 
 // Стандартные S-блоки ГОСТ 28147-89
 static const uint8_t SBOX[8][16] = {
@@ -27,10 +28,12 @@ static inline uint32_t magma_F(uint32_t data, uint32_t key) {
     return (result << 11) | (result >> (32 - 11));
 }
 
-void GOST_MAGMA_SetKey(magma_ctx_t* ctx, const uint8_t* key) {
-    // Первые 8 ключей из исходного ключа
+void GOST_ECB_magma_setkey(uint8_t* key) {
+    static kuz_key_t ctx;
+
+    // Генерация раундовых ключей (32 раунда)
     for (int i = 0; i < 8; i++) {
-        ctx->round_keys[i] = ((uint32_t)key[4 * i] << 24) |
+        ctx.k[i] = ((uint32_t)key[4 * i] << 24) |
             ((uint32_t)key[4 * i + 1] << 16) |
             ((uint32_t)key[4 * i + 2] << 8) |
             (uint32_t)key[4 * i + 3];
@@ -38,16 +41,17 @@ void GOST_MAGMA_SetKey(magma_ctx_t* ctx, const uint8_t* key) {
 
     // Повторяем ключи 3 раза (24 раунда)
     for (int i = 8; i < 24; i++) {
-        ctx->round_keys[i] = ctx->round_keys[i % 8];
+        ctx.k[i] = ctx.k[i % 8];
     }
 
     // Обратный порядок для последних 8 раундов
     for (int i = 0; i < 8; i++) {
-        ctx->round_keys[24 + i] = ctx->round_keys[7 - i];
+        ctx.k[24 + i] = ctx.k[7 - i];
     }
 }
 
-void GOST_MAGMA_Encrypt(const magma_ctx_t* ctx, uint8_t* block) {
+void GOST_ECB_magma_crypto(uint8_t* block) {
+    static kuz_key_t ctx;
     uint32_t left, right, temp;
 
     // Разделение блока на две части
@@ -59,12 +63,12 @@ void GOST_MAGMA_Encrypt(const magma_ctx_t* ctx, uint8_t* block) {
     // 31 раунд преобразований
     for (int i = 0; i < 31; i++) {
         temp = left;
-        left = right ^ magma_F(left, ctx->round_keys[i]);
+        left = right ^ magma_F(left, ctx.k[i]);
         right = temp;
     }
 
     // Финальный раунд (без перестановки)
-    right ^= magma_F(left, ctx->round_keys[31]);
+    right ^= magma_F(left, ctx.k[31]);
 
     // Сборка результата
     block[0] = (left >> 24) & 0xFF;
@@ -75,48 +79,4 @@ void GOST_MAGMA_Encrypt(const magma_ctx_t* ctx, uint8_t* block) {
     block[5] = (right >> 16) & 0xFF;
     block[6] = (right >> 8) & 0xFF;
     block[7] = right & 0xFF;
-}
-
-void GOST_MAGMA_Decrypt(const magma_ctx_t* ctx, uint8_t* block) {
-    uint32_t left, right, temp;
-
-    // Разделение блока
-    left = ((uint32_t)block[0] << 24) | ((uint32_t)block[1] << 16) |
-        ((uint32_t)block[2] << 8) | block[3];
-    right = ((uint32_t)block[4] << 24) | ((uint32_t)block[5] << 16) |
-        ((uint32_t)block[6] << 8) | block[7];
-
-    // Обратные раунды
-    for (int i = 0; i < 31; i++) {
-        temp = left;
-        left = right ^ magma_F(left, ctx->round_keys[31 - i]);
-        right = temp;
-    }
-
-    // Финальный раунд
-    right ^= magma_F(left, ctx->round_keys[0]);
-
-    // Сборка результата
-    block[0] = (left >> 24) & 0xFF;
-    block[1] = (left >> 16) & 0xFF;
-    block[2] = (left >> 8) & 0xFF;
-    block[3] = left & 0xFF;
-    block[4] = (right >> 24) & 0xFF;
-    block[5] = (right >> 16) & 0xFF;
-    block[6] = (right >> 8) & 0xFF;
-    block[7] = right & 0xFF;
-}
-
-void GOST_MAGMA_ECB_Encrypt(magma_ctx_t* ctx, const uint8_t* in, uint8_t* out, size_t len) {
-    for (size_t i = 0; i < len; i += MAGMA_BLOCK_SIZE) {
-        memcpy(out + i, in + i, MAGMA_BLOCK_SIZE);
-        GOST_MAGMA_Encrypt(ctx, out + i);
-    }
-}
-
-void GOST_MAGMA_ECB_Decrypt(magma_ctx_t* ctx, const uint8_t* in, uint8_t* out, size_t len) {
-    for (size_t i = 0; i < len; i += MAGMA_BLOCK_SIZE) {
-        memcpy(out + i, in + i, MAGMA_BLOCK_SIZE);
-        GOST_MAGMA_Decrypt(ctx, out + i);
-    }
 }

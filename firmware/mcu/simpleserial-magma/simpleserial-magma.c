@@ -125,7 +125,7 @@ int main(void)
     simpleserial_addcmd(0x01, 16, gost);
 #else
     simpleserial_addcmd('k', 32, get_key);
-    simpleserial_addcmd('p', 16, get_pt);
+    simpleserial_addcmd('p', 8, get_pt);
     simpleserial_addcmd('x', 0, reset);
     simpleserial_addcmd_flags('m', 18, get_mask, CMD_FLAG_LEN);
     simpleserial_addcmd('s', 2, enc_multi_setnum);
