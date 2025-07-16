@@ -16,12 +16,12 @@
 // my 128-bit datatype
 typedef union {
     uint64_t q[2];
-    uint8_t  b[GOST_BLOCKLEN];
+    uint8_t  b[MAGMA_BLOCKLEN];
 } w128_t;
 
 // cipher context
 typedef struct {
-    w128_t k[Nr]; // round keys
+    uint32_t k[Nr]; // round keys
 } kuz_key_t;
 
 void GOST_ECB_magma_setkey(uint8_t* key);
